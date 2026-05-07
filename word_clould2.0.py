@@ -14,7 +14,8 @@ from wordcloud import STOPWORDS as WORDCLOUD_STOPWORDS
 from wordcloud import WordCloud
 import jieba
 import streamlit as st
-import contextlib, io
+import contextlib
+import io
 
 resources = {
     "punkt": "tokenizers/punkt",
