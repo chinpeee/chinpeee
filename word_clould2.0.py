@@ -78,35 +78,7 @@ top_terms = pd.DataFrame(Counter(all_tokens).most_common(20), columns=['term', '
 import matplotlib.pyplot as plt
 import matplotlib.font_manager as fm
 
-def setup_cjk_font():
-    candidates = [
-        'Noto Sans CJK TC',
-        'Noto Sans CJK SC',
-        'Noto Sans CJK JP',
-        'Microsoft JhengHei',
-        'PingFang TC',
-        'SimHei',
-        'Arial Unicode MS'
-    ]
-
-    available_fonts = fm.fontManager.ttflist
-
-    for font in candidates:
-        for f in available_fonts:
-            if font == f.name:
-                plt.rcParams['font.family'] = 'sans-serif'
-                plt.rcParams['font.sans-serif'] = [font]
-                plt.rcParams['axes.unicode_minus'] = False
-
-                print(f'Using font: {font}')
-                print(f'Font path: {f.fname}')
-
-                return f.fname
-
-    print('No CJK font found by matplotlib.')
-    return None
-
-font_path = setup_cjk_font()
+font_path = "fonts/NotoSansTC-Regular.otf"
 
 st.title("新竹水潤餅文字雲")
 
