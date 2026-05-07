@@ -73,7 +73,7 @@ for tokens in df['tokens']:
     for token in tokens:
         all_tokens.append(token)
         
-top_terms = pd.DataFrame(Counter(all_tokens).most_common(20), columns=['term', 'count'])
+top_terms = pd.DataFrame(Counter(all_tokens).most_common(1000), columns=['term', 'count'])
 
 import matplotlib.pyplot as plt
 import matplotlib.font_manager as fm
