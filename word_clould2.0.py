@@ -78,7 +78,7 @@ top_terms = pd.DataFrame(Counter(all_tokens).most_common(20), columns=['term', '
 import matplotlib.pyplot as plt
 import matplotlib.font_manager as fm
 
-font_path = "fonts/NotoSansTC-Regular.otf"
+font_path = "NotoSansTC-Regular.ttf"
 
 st.title("新竹水潤餅文字雲")
 
