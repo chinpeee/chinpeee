@@ -4,10 +4,6 @@
 # In[1]:
 
 
-get_ipython().system('pip install jieba')
-get_ipython().system('pip install pathlib')
-get_ipython().system('pip install nltk wordcloud matplotlib pandas')
-get_ipython().system('pip install wordcloud')
 import re
 from collections import Counter
 from pathlib import Path
