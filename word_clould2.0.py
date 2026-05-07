@@ -14,8 +14,7 @@ from wordcloud import STOPWORDS as WORDCLOUD_STOPWORDS
 from wordcloud import WordCloud
 import jieba
 import streamlit as st
-import contextlib
-import io
+import contextlib, io
 
 resources = {
     "punkt": "tokenizers/punkt",
@@ -46,7 +45,11 @@ df['clean_text'] = df['介紹'].fillna('').astype(str)
 
 df['clean_text'] = df['clean_text'].str.replace(r'\\n', ' ', regex=True)
 
-df['clean_text'] = df['clean_text'].str.replace(r'[^\u4e00-\u9fffA-Za-z\s]', ' ', regex=True)
+df['clean_text'] = df['clean_text'].str.replace(
+    r'[^一-龥A-Za-z\s]',
+    ' ',
+    regex=True
+)
 
 raw_tokens = [jieba.lcut(x) for x in df['clean_text']]
 df['raw_tokens'] = raw_tokens
