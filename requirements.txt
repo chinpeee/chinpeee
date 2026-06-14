@@ -1,6 +1,7 @@
 streamlit
 pandas
+numpy
 matplotlib
-jieba
-nltk
-wordcloud
+seaborn
+statsmodels
+openpyxl
