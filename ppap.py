@@ -284,12 +284,12 @@ ax.legend()
 st.pyplot(fig)
 
 # =====================================================
-# 原有儀表板內容
+# 媒介數量可視化
 # =====================================================
 
 st.markdown("---")
 
-st.header("📌 全國與地方趨勢")
+st.header("📌 全國與地方媒介數量")
 
 st.metric(
     label="全國平均媒介管道數值",
@@ -321,7 +321,7 @@ st.bar_chart(deviation_data)
 
 st.markdown("---")
 
-st.header("🌐 全台空間分佈")
+st.header("🌐 各縣市媒介數量視覺化")
 
 st.map(
     df,
@@ -336,7 +336,7 @@ st.map(
 
 st.markdown("---")
 
-st.header("📋 原始數據與表格內視覺化")
+st.header("📋 各縣市媒介數量&離差表")
 
 st.dataframe(
     df_display[
