@@ -87,7 +87,7 @@ df["map_size"] = (
 # Streamlit UI
 # =====================================================
 
-st.title("📊 媒介資訊不平等研究 Dashboard")
+st.title("📊 媒介資訊不平等 Dashboard")
 
 st.sidebar.header("控制面板")
 
@@ -164,7 +164,7 @@ st.pyplot(fig)
 # X → M
 # =====================================================
 
-st.header("📈 資訊近用對風險感知的影響")
+st.header("📈 資訊近用對風險感知的影響 X → M")
 
 fig, ax = plt.subplots(figsize=(8,5))
 
@@ -177,8 +177,8 @@ sns.regplot(
 )
 
 ax.set_title("資訊近用對風險感知")
-ax.set_xlabel("資訊近用（info）")
-ax.set_ylabel("風險感知（risk）")
+ax.set_xlabel("資訊近用")
+ax.set_ylabel("風險感知")
 
 st.pyplot(fig)
 
@@ -186,7 +186,7 @@ st.pyplot(fig)
 # M → Y
 # =====================================================
 
-st.header("📈 風險感知對預防行為的影響")
+st.header("📈 風險感知對預防行為的影響 M → Y")
 
 fig, ax = plt.subplots(figsize=(8,5))
 
@@ -199,8 +199,8 @@ sns.regplot(
 )
 
 ax.set_title("風險感知對預防行為")
-ax.set_xlabel("風險感知（risk）")
-ax.set_ylabel("預防行為（action）")
+ax.set_xlabel("風險感知")
+ax.set_ylabel("預防行為")
 
 st.pyplot(fig)
 
@@ -298,8 +298,8 @@ ax.plot(
 
 ax.set_title("媒介類型對資訊近用與風險感知關係之調節效果")
 
-ax.set_xlabel("資訊近用（info）")
-ax.set_ylabel("風險感知（risk）")
+ax.set_xlabel("資訊近用")
+ax.set_ylabel("風險感知")
 
 ax.legend()
 
