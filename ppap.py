@@ -161,6 +161,28 @@ ax.set_ylabel("預防行為")
 st.pyplot(fig)
 
 # =====================================================
+# X → Y
+# =====================================================
+
+st.header("📈 資訊近用對預防行為的影響 X → Y")
+
+fig, ax = plt.subplots(figsize=(8,5))
+
+sns.regplot(
+    data=process_df,
+    x="info",
+    y="action",
+    scatter_kws={"alpha":0.3},
+    ax=ax
+)
+
+ax.set_title("資訊近用對預防行為")
+ax.set_xlabel("資訊近用")
+ax.set_ylabel("預防行為")
+
+st.pyplot(fig)
+
+# =====================================================
 # CORRELATION
 # =====================================================
 
