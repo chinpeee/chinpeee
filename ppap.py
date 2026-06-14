@@ -117,50 +117,6 @@ else:
     df_display = df
 
 # =====================================================
-# PROCESS MODEL 7
-# =====================================================
-
-st.header("🧠 PROCESS Model 7 路徑圖")
-
-fig, ax = plt.subplots(figsize=(10,5))
-
-ax.axis("off")
-
-ax.text(
-    0.1,0.5,
-    "資訊近用\n(X)",
-    fontsize=16,
-    bbox=dict(boxstyle="round")
-)
-
-ax.text(
-    0.45,0.5,
-    "風險感知\n(M)",
-    fontsize=16,
-    bbox=dict(boxstyle="round")
-)
-
-ax.text(
-    0.8,0.5,
-    "預防行為\n(Y)",
-    fontsize=16,
-    bbox=dict(boxstyle="round")
-)
-
-ax.text(
-    0.45,0.15,
-    "媒介類型\n(W)",
-    fontsize=16,
-    bbox=dict(boxstyle="round")
-)
-
-ax.arrow(0.2,0.55,0.18,0,head_width=0.02)
-ax.arrow(0.55,0.55,0.18,0,head_width=0.02)
-ax.arrow(0.48,0.25,0,0.18,head_width=0.02)
-
-st.pyplot(fig)
-
-# =====================================================
 # X → M
 # =====================================================
 
