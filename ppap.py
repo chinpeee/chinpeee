@@ -1,412 +1,385 @@
-{
- "cells": [
-  {
-   "cell_type": "code",
-   "execution_count": null,
-   "id": "1164b676-7fb2-44f2-a3c0-a027e9cfd82e",
-   "metadata": {},
-   "outputs": [],
-   "source": [
-    "import streamlit as st\n",
-    "import pandas as pd\n",
-    "import numpy as np\n",
-    "\n",
-    "import matplotlib.pyplot as plt\n",
-    "import seaborn as sns\n",
-    "import statsmodels.api as sm\n",
-    "\n",
-    "# =====================================================\n",
-    "# 中文字型\n",
-    "# =====================================================\n",
-    "\n",
-    "from matplotlib import font_manager\n",
-    "\n",
-    "font_path = \"NotoSansTC-Regular.ttf\"\n",
-    "\n",
-    "font_manager.fontManager.addfont(font_path)\n",
-    "\n",
-    "plt.rcParams['font.family'] = 'Noto Sans TC'\n",
-    "plt.rcParams['axes.unicode_minus'] = False\n",
-    "\n",
-    "# =====================================================\n",
-    "# 載入 PROCESS 資料\n",
-    "# =====================================================\n",
-    "\n",
-    "process_df = pd.read_excel(\"028482020.xlsx\")\n",
-    "\n",
-    "# =====================================================\n",
-    "# 原本的縣市資料\n",
-    "# =====================================================\n",
-    "\n",
-    "national_avg = 1.5016\n",
-    "\n",
-    "data = {\n",
-    "    \"縣市\": [\n",
-    "        \"基隆市\", \"台北市\", \"新北市\", \"桃園市\", \"新竹縣\", \"新竹市\",\n",
-    "        \"苗栗縣\", \"南投縣\", \"台中市\", \"彰化縣\", \"雲林縣\", \"嘉義縣\",\n",
-    "        \"嘉義市\", \"台南市\", \"高雄市\", \"屏東縣\", \"宜蘭縣\", \"花蓮縣\",\n",
-    "        \"台東縣\", \"澎湖縣\", \"金門縣\", \"連江縣\"\n",
-    "    ],\n",
-    "\n",
-    "    \"平均媒介管道數\": [\n",
-    "        1.5144,1.5598,1.6357,1.5213,1.4424,1.5673,\n",
-    "        1.4239,1.3963,1.4834,1.4854,1.4944,1.3499,\n",
-    "        1.4423,1.4063,1.5130,1.5319,1.5000,1.3958,\n",
-    "        1.4545,1.2857,1.0000,1.6000\n",
-    "    ],\n",
-    "\n",
-    "    \"lat\":[\n",
-    "        25.1082,25.0330,24.9664,24.9376,24.7001,\n",
-    "        24.8143,24.5649,23.8388,24.2332,23.9912,\n",
-    "        23.7092,23.4518,23.4755,23.1417,22.7265,\n",
-    "        22.4701,24.6022,23.7569,22.7972,23.5654,\n",
-    "        24.4482,26.1521\n",
-    "    ],\n",
-    "\n",
-    "    \"lon\":[\n",
-    "        121.7081,121.5654,121.4367,121.2168,121.1235,\n",
-    "        120.9675,120.8208,120.9876,120.8170,120.4811,\n",
-    "        120.4313,120.5746,120.4473,120.2513,120.3954,\n",
-    "        120.5891,121.6291,121.3542,121.0711,119.5664,\n",
-    "        118.3786,119.9281\n",
-    "    ]\n",
-    "}\n",
-    "\n",
-    "df = pd.DataFrame(data)\n",
-    "\n",
-    "df[\"與全國平均差距\"] = (\n",
-    "    df[\"平均媒介管道數\"] - national_avg\n",
-    ")\n",
-    "\n",
-    "min_val = df[\"平均媒介管道數\"].min()\n",
-    "max_val = df[\"平均媒介管道數\"].max()\n",
-    "\n",
-    "df[\"map_size\"] = (\n",
-    "    ((df[\"平均媒介管道數\"] - min_val) /\n",
-    "    (max_val - min_val)) ** 3\n",
-    ") * 25000 + 300\n",
-    "\n",
-    "# =====================================================\n",
-    "# Streamlit UI\n",
-    "# =====================================================\n",
-    "\n",
-    "st.title(\"📊 媒介資訊不平等研究 Dashboard\")\n",
-    "\n",
-    "st.sidebar.header(\"控制面板\")\n",
-    "\n",
-    "chart_type = st.sidebar.radio(\n",
-    "    \"趨勢圖表類型\",\n",
-    "    [\"長條圖 (Bar)\", \"折線圖 (Line)\"]\n",
-    ")\n",
-    "\n",
-    "sort_order = st.sidebar.selectbox(\n",
-    "    \"資料排序方式\",\n",
-    "    [\"依地理預設\", \"數值由高到低\", \"數值由低到高\"]\n",
-    ")\n",
-    "\n",
-    "if sort_order == \"數值由高到低\":\n",
-    "    df_display = df.sort_values(\n",
-    "        by=\"平均媒介管道數\",\n",
-    "        ascending=False\n",
-    "    )\n",
-    "\n",
-    "elif sort_order == \"數值由低到高\":\n",
-    "    df_display = df.sort_values(\n",
-    "        by=\"平均媒介管道數\",\n",
-    "        ascending=True\n",
-    "    )\n",
-    "\n",
-    "else:\n",
-    "    df_display = df\n",
-    "\n",
-    "# =====================================================\n",
-    "# PROCESS MODEL 7\n",
-    "# =====================================================\n",
-    "\n",
-    "st.header(\"🧠 PROCESS Model 7 路徑圖\")\n",
-    "\n",
-    "fig, ax = plt.subplots(figsize=(10,5))\n",
-    "\n",
-    "ax.axis(\"off\")\n",
-    "\n",
-    "ax.text(\n",
-    "    0.1,0.5,\n",
-    "    \"資訊近用\\n(X)\",\n",
-    "    fontsize=16,\n",
-    "    bbox=dict(boxstyle=\"round\")\n",
-    ")\n",
-    "\n",
-    "ax.text(\n",
-    "    0.45,0.5,\n",
-    "    \"風險感知\\n(M)\",\n",
-    "    fontsize=16,\n",
-    "    bbox=dict(boxstyle=\"round\")\n",
-    ")\n",
-    "\n",
-    "ax.text(\n",
-    "    0.8,0.5,\n",
-    "    \"預防行為\\n(Y)\",\n",
-    "    fontsize=16,\n",
-    "    bbox=dict(boxstyle=\"round\")\n",
-    ")\n",
-    "\n",
-    "ax.text(\n",
-    "    0.45,0.15,\n",
-    "    \"媒介類型\\n(W)\",\n",
-    "    fontsize=16,\n",
-    "    bbox=dict(boxstyle=\"round\")\n",
-    ")\n",
-    "\n",
-    "ax.arrow(0.2,0.55,0.18,0,head_width=0.02)\n",
-    "ax.arrow(0.55,0.55,0.18,0,head_width=0.02)\n",
-    "ax.arrow(0.48,0.25,0,0.18,head_width=0.02)\n",
-    "\n",
-    "st.pyplot(fig)\n",
-    "\n",
-    "# =====================================================\n",
-    "# X → M\n",
-    "# =====================================================\n",
-    "\n",
-    "st.header(\"📈 資訊近用對風險感知的影響\")\n",
-    "\n",
-    "fig, ax = plt.subplots(figsize=(8,5))\n",
-    "\n",
-    "sns.regplot(\n",
-    "    data=process_df,\n",
-    "    x=\"info\",\n",
-    "    y=\"risk\",\n",
-    "    scatter_kws={\"alpha\":0.3},\n",
-    "    ax=ax\n",
-    ")\n",
-    "\n",
-    "ax.set_title(\"資訊近用對風險感知\")\n",
-    "ax.set_xlabel(\"資訊近用（info）\")\n",
-    "ax.set_ylabel(\"風險感知（risk）\")\n",
-    "\n",
-    "st.pyplot(fig)\n",
-    "\n",
-    "# =====================================================\n",
-    "# M → Y\n",
-    "# =====================================================\n",
-    "\n",
-    "st.header(\"📈 風險感知對預防行為的影響\")\n",
-    "\n",
-    "fig, ax = plt.subplots(figsize=(8,5))\n",
-    "\n",
-    "sns.regplot(\n",
-    "    data=process_df,\n",
-    "    x=\"risk\",\n",
-    "    y=\"action\",\n",
-    "    scatter_kws={\"alpha\":0.3},\n",
-    "    ax=ax\n",
-    ")\n",
-    "\n",
-    "ax.set_title(\"風險感知對預防行為\")\n",
-    "ax.set_xlabel(\"風險感知（risk）\")\n",
-    "ax.set_ylabel(\"預防行為（action）\")\n",
-    "\n",
-    "st.pyplot(fig)\n",
-    "\n",
-    "# =====================================================\n",
-    "# CORRELATION\n",
-    "# =====================================================\n",
-    "\n",
-    "st.header(\"🔥 主要變項相關矩陣\")\n",
-    "\n",
-    "corr = process_df[\n",
-    "    [\"info\",\"media\",\"risk\",\"action\"]\n",
-    "].corr()\n",
-    "\n",
-    "fig, ax = plt.subplots(figsize=(6,5))\n",
-    "\n",
-    "sns.heatmap(\n",
-    "    corr,\n",
-    "    annot=True,\n",
-    "    cmap=\"RdYlBu_r\",\n",
-    "    fmt=\".2f\",\n",
-    "    ax=ax\n",
-    ")\n",
-    "\n",
-    "ax.set_title(\"主要變項相關矩陣\")\n",
-    "\n",
-    "st.pyplot(fig)\n",
-    "\n",
-    "# =====================================================\n",
-    "# SIMPLE SLOPE\n",
-    "# =====================================================\n",
-    "\n",
-    "st.header(\"📊 媒介類型的調節效果（Simple Slope）\")\n",
-    "\n",
-    "process_df[\"interaction\"] = (\n",
-    "    process_df[\"info\"] *\n",
-    "    process_df[\"media\"]\n",
-    ")\n",
-    "\n",
-    "X = process_df[\n",
-    "    [\"info\",\"media\",\"interaction\"]\n",
-    "]\n",
-    "\n",
-    "X = sm.add_constant(X)\n",
-    "\n",
-    "y = process_df[\"risk\"]\n",
-    "\n",
-    "model = sm.OLS(y,X).fit()\n",
-    "\n",
-    "b0 = model.params[\"const\"]\n",
-    "b1 = model.params[\"info\"]\n",
-    "b2 = model.params[\"media\"]\n",
-    "b3 = model.params[\"interaction\"]\n",
-    "\n",
-    "media_mean = process_df[\"media\"].mean()\n",
-    "media_sd = process_df[\"media\"].std()\n",
-    "\n",
-    "low_media = media_mean - media_sd\n",
-    "high_media = media_mean + media_sd\n",
-    "\n",
-    "info_range = np.linspace(\n",
-    "    process_df[\"info\"].min(),\n",
-    "    process_df[\"info\"].max(),\n",
-    "    100\n",
-    ")\n",
-    "\n",
-    "risk_low = (\n",
-    "    b0 +\n",
-    "    b1*info_range +\n",
-    "    b2*low_media +\n",
-    "    b3*(info_range*low_media)\n",
-    ")\n",
-    "\n",
-    "risk_high = (\n",
-    "    b0 +\n",
-    "    b1*info_range +\n",
-    "    b2*high_media +\n",
-    "    b3*(info_range*high_media)\n",
-    ")\n",
-    "\n",
-    "fig, ax = plt.subplots(figsize=(8,5))\n",
-    "\n",
-    "ax.plot(\n",
-    "    info_range,\n",
-    "    risk_low,\n",
-    "    linewidth=3,\n",
-    "    label=\"低媒介類型\"\n",
-    ")\n",
-    "\n",
-    "ax.plot(\n",
-    "    info_range,\n",
-    "    risk_high,\n",
-    "    linewidth=3,\n",
-    "    label=\"高媒介類型\"\n",
-    ")\n",
-    "\n",
-    "ax.set_title(\"媒介類型對資訊近用與風險感知關係之調節效果\")\n",
-    "\n",
-    "ax.set_xlabel(\"資訊近用（info）\")\n",
-    "ax.set_ylabel(\"風險感知（risk）\")\n",
-    "\n",
-    "ax.legend()\n",
-    "\n",
-    "st.pyplot(fig)\n",
-    "\n",
-    "# =====================================================\n",
-    "# 原有儀表板內容\n",
-    "# =====================================================\n",
-    "\n",
-    "st.markdown(\"---\")\n",
-    "\n",
-    "st.header(\"📌 全國與地方趨勢\")\n",
-    "\n",
-    "st.metric(\n",
-    "    label=\"全國平均媒介管道數值\",\n",
-    "    value=national_avg\n",
-    ")\n",
-    "\n",
-    "chart_data = df_display.set_index(\"縣市\")[[\"平均媒介管道數\"]]\n",
-    "\n",
-    "if chart_type == \"長條圖 (Bar)\":\n",
-    "    st.bar_chart(chart_data)\n",
-    "else:\n",
-    "    st.line_chart(chart_data)\n",
-    "\n",
-    "# =====================================================\n",
-    "# 離差圖\n",
-    "# =====================================================\n",
-    "\n",
-    "st.markdown(\"---\")\n",
-    "\n",
-    "st.header(\"📉 各縣市與全國平均差距\")\n",
-    "\n",
-    "deviation_data = df_display.set_index(\"縣市\")[[\"與全國平均差距\"]]\n",
-    "\n",
-    "st.bar_chart(deviation_data)\n",
-    "\n",
-    "# =====================================================\n",
-    "# 地圖\n",
-    "# =====================================================\n",
-    "\n",
-    "st.markdown(\"---\")\n",
-    "\n",
-    "st.header(\"🌐 全台空間分佈\")\n",
-    "\n",
-    "st.map(\n",
-    "    df,\n",
-    "    latitude=\"lat\",\n",
-    "    longitude=\"lon\",\n",
-    "    size=\"map_size\"\n",
-    ")\n",
-    "\n",
-    "# =====================================================\n",
-    "# 資料表\n",
-    "# =====================================================\n",
-    "\n",
-    "st.markdown(\"---\")\n",
-    "\n",
-    "st.header(\"📋 原始數據與表格內視覺化\")\n",
-    "\n",
-    "st.dataframe(\n",
-    "    df_display[\n",
-    "        [\"縣市\",\"平均媒介管道數\",\"與全國平均差距\"]\n",
-    "    ],\n",
-    "    column_config={\n",
-    "        \"平均媒介管道數\":\n",
-    "        st.column_config.ProgressColumn(\n",
-    "            \"平均媒介管道數\",\n",
-    "            format=\"%.4f\",\n",
-    "            min_value=0,\n",
-    "            max_value=2.0\n",
-    "        ),\n",
-    "\n",
-    "        \"與全國平均差距\":\n",
-    "        st.column_config.NumberColumn(\n",
-    "            \"與全國平均差距\",\n",
-    "            format=\"%.4f\"\n",
-    "        )\n",
-    "    },\n",
-    "    hide_index=True,\n",
-    "    use_container_width=True\n",
-    ")"
-   ]
-  }
- ],
- "metadata": {
-  "kernelspec": {
-   "display_name": "Python 3 (ipykernel)",
-   "language": "python",
-   "name": "python3"
-  },
-  "language_info": {
-   "codemirror_mode": {
-    "name": "ipython",
-    "version": 3
-   },
-   "file_extension": ".py",
-   "mimetype": "text/x-python",
-   "name": "python",
-   "nbconvert_exporter": "python",
-   "pygments_lexer": "ipython3",
-   "version": "3.12.5"
-  }
- },
- "nbformat": 4,
- "nbformat_minor": 5
+#!/usr/bin/env python
+# coding: utf-8
+
+# In[ ]:
+
+
+import streamlit as st
+import pandas as pd
+import numpy as np
+
+import matplotlib.pyplot as plt
+import seaborn as sns
+import statsmodels.api as sm
+
+# =====================================================
+# 中文字型
+# =====================================================
+
+from matplotlib import font_manager
+
+font_path = "NotoSansTC-Regular.ttf"
+
+font_manager.fontManager.addfont(font_path)
+
+plt.rcParams['font.family'] = 'Noto Sans TC'
+plt.rcParams['axes.unicode_minus'] = False
+
+# =====================================================
+# 載入 PROCESS 資料
+# =====================================================
+
+process_df = pd.read_excel("028482020.xlsx")
+
+# =====================================================
+# 原本的縣市資料
+# =====================================================
+
+national_avg = 1.5016
+
+data = {
+    "縣市": [
+        "基隆市", "台北市", "新北市", "桃園市", "新竹縣", "新竹市",
+        "苗栗縣", "南投縣", "台中市", "彰化縣", "雲林縣", "嘉義縣",
+        "嘉義市", "台南市", "高雄市", "屏東縣", "宜蘭縣", "花蓮縣",
+        "台東縣", "澎湖縣", "金門縣", "連江縣"
+    ],
+
+    "平均媒介管道數": [
+        1.5144,1.5598,1.6357,1.5213,1.4424,1.5673,
+        1.4239,1.3963,1.4834,1.4854,1.4944,1.3499,
+        1.4423,1.4063,1.5130,1.5319,1.5000,1.3958,
+        1.4545,1.2857,1.0000,1.6000
+    ],
+
+    "lat":[
+        25.1082,25.0330,24.9664,24.9376,24.7001,
+        24.8143,24.5649,23.8388,24.2332,23.9912,
+        23.7092,23.4518,23.4755,23.1417,22.7265,
+        22.4701,24.6022,23.7569,22.7972,23.5654,
+        24.4482,26.1521
+    ],
+
+    "lon":[
+        121.7081,121.5654,121.4367,121.2168,121.1235,
+        120.9675,120.8208,120.9876,120.8170,120.4811,
+        120.4313,120.5746,120.4473,120.2513,120.3954,
+        120.5891,121.6291,121.3542,121.0711,119.5664,
+        118.3786,119.9281
+    ]
 }
+
+df = pd.DataFrame(data)
+
+df["與全國平均差距"] = (
+    df["平均媒介管道數"] - national_avg
+)
+
+min_val = df["平均媒介管道數"].min()
+max_val = df["平均媒介管道數"].max()
+
+df["map_size"] = (
+    ((df["平均媒介管道數"] - min_val) /
+    (max_val - min_val)) ** 3
+) * 25000 + 300
+
+# =====================================================
+# Streamlit UI
+# =====================================================
+
+st.title("📊 媒介資訊不平等研究 Dashboard")
+
+st.sidebar.header("控制面板")
+
+chart_type = st.sidebar.radio(
+    "趨勢圖表類型",
+    ["長條圖 (Bar)", "折線圖 (Line)"]
+)
+
+sort_order = st.sidebar.selectbox(
+    "資料排序方式",
+    ["依地理預設", "數值由高到低", "數值由低到高"]
+)
+
+if sort_order == "數值由高到低":
+    df_display = df.sort_values(
+        by="平均媒介管道數",
+        ascending=False
+    )
+
+elif sort_order == "數值由低到高":
+    df_display = df.sort_values(
+        by="平均媒介管道數",
+        ascending=True
+    )
+
+else:
+    df_display = df
+
+# =====================================================
+# PROCESS MODEL 7
+# =====================================================
+
+st.header("🧠 PROCESS Model 7 路徑圖")
+
+fig, ax = plt.subplots(figsize=(10,5))
+
+ax.axis("off")
+
+ax.text(
+    0.1,0.5,
+    "資訊近用\n(X)",
+    fontsize=16,
+    bbox=dict(boxstyle="round")
+)
+
+ax.text(
+    0.45,0.5,
+    "風險感知\n(M)",
+    fontsize=16,
+    bbox=dict(boxstyle="round")
+)
+
+ax.text(
+    0.8,0.5,
+    "預防行為\n(Y)",
+    fontsize=16,
+    bbox=dict(boxstyle="round")
+)
+
+ax.text(
+    0.45,0.15,
+    "媒介類型\n(W)",
+    fontsize=16,
+    bbox=dict(boxstyle="round")
+)
+
+ax.arrow(0.2,0.55,0.18,0,head_width=0.02)
+ax.arrow(0.55,0.55,0.18,0,head_width=0.02)
+ax.arrow(0.48,0.25,0,0.18,head_width=0.02)
+
+st.pyplot(fig)
+
+# =====================================================
+# X → M
+# =====================================================
+
+st.header("📈 資訊近用對風險感知的影響")
+
+fig, ax = plt.subplots(figsize=(8,5))
+
+sns.regplot(
+    data=process_df,
+    x="info",
+    y="risk",
+    scatter_kws={"alpha":0.3},
+    ax=ax
+)
+
+ax.set_title("資訊近用對風險感知")
+ax.set_xlabel("資訊近用（info）")
+ax.set_ylabel("風險感知（risk）")
+
+st.pyplot(fig)
+
+# =====================================================
+# M → Y
+# =====================================================
+
+st.header("📈 風險感知對預防行為的影響")
+
+fig, ax = plt.subplots(figsize=(8,5))
+
+sns.regplot(
+    data=process_df,
+    x="risk",
+    y="action",
+    scatter_kws={"alpha":0.3},
+    ax=ax
+)
+
+ax.set_title("風險感知對預防行為")
+ax.set_xlabel("風險感知（risk）")
+ax.set_ylabel("預防行為（action）")
+
+st.pyplot(fig)
+
+# =====================================================
+# CORRELATION
+# =====================================================
+
+st.header("🔥 主要變項相關矩陣")
+
+corr = process_df[
+    ["info","media","risk","action"]
+].corr()
+
+fig, ax = plt.subplots(figsize=(6,5))
+
+sns.heatmap(
+    corr,
+    annot=True,
+    cmap="RdYlBu_r",
+    fmt=".2f",
+    ax=ax
+)
+
+ax.set_title("主要變項相關矩陣")
+
+st.pyplot(fig)
+
+# =====================================================
+# SIMPLE SLOPE
+# =====================================================
+
+st.header("📊 媒介類型的調節效果（Simple Slope）")
+
+process_df["interaction"] = (
+    process_df["info"] *
+    process_df["media"]
+)
+
+X = process_df[
+    ["info","media","interaction"]
+]
+
+X = sm.add_constant(X)
+
+y = process_df["risk"]
+
+model = sm.OLS(y,X).fit()
+
+b0 = model.params["const"]
+b1 = model.params["info"]
+b2 = model.params["media"]
+b3 = model.params["interaction"]
+
+media_mean = process_df["media"].mean()
+media_sd = process_df["media"].std()
+
+low_media = media_mean - media_sd
+high_media = media_mean + media_sd
+
+info_range = np.linspace(
+    process_df["info"].min(),
+    process_df["info"].max(),
+    100
+)
+
+risk_low = (
+    b0 +
+    b1*info_range +
+    b2*low_media +
+    b3*(info_range*low_media)
+)
+
+risk_high = (
+    b0 +
+    b1*info_range +
+    b2*high_media +
+    b3*(info_range*high_media)
+)
+
+fig, ax = plt.subplots(figsize=(8,5))
+
+ax.plot(
+    info_range,
+    risk_low,
+    linewidth=3,
+    label="低媒介類型"
+)
+
+ax.plot(
+    info_range,
+    risk_high,
+    linewidth=3,
+    label="高媒介類型"
+)
+
+ax.set_title("媒介類型對資訊近用與風險感知關係之調節效果")
+
+ax.set_xlabel("資訊近用（info）")
+ax.set_ylabel("風險感知（risk）")
+
+ax.legend()
+
+st.pyplot(fig)
+
+# =====================================================
+# 原有儀表板內容
+# =====================================================
+
+st.markdown("---")
+
+st.header("📌 全國與地方趨勢")
+
+st.metric(
+    label="全國平均媒介管道數值",
+    value=national_avg
+)
+
+chart_data = df_display.set_index("縣市")[["平均媒介管道數"]]
+
+if chart_type == "長條圖 (Bar)":
+    st.bar_chart(chart_data)
+else:
+    st.line_chart(chart_data)
+
+# =====================================================
+# 離差圖
+# =====================================================
+
+st.markdown("---")
+
+st.header("📉 各縣市與全國平均差距")
+
+deviation_data = df_display.set_index("縣市")[["與全國平均差距"]]
+
+st.bar_chart(deviation_data)
+
+# =====================================================
+# 地圖
+# =====================================================
+
+st.markdown("---")
+
+st.header("🌐 全台空間分佈")
+
+st.map(
+    df,
+    latitude="lat",
+    longitude="lon",
+    size="map_size"
+)
+
+# =====================================================
+# 資料表
+# =====================================================
+
+st.markdown("---")
+
+st.header("📋 原始數據與表格內視覺化")
+
+st.dataframe(
+    df_display[
+        ["縣市","平均媒介管道數","與全國平均差距"]
+    ],
+    column_config={
+        "平均媒介管道數":
+        st.column_config.ProgressColumn(
+            "平均媒介管道數",
+            format="%.4f",
+            min_value=0,
+            max_value=2.0
+        ),
+
+        "與全國平均差距":
+        st.column_config.NumberColumn(
+            "與全國平均差距",
+            format="%.4f"
+        )
+    },
+    hide_index=True,
+    use_container_width=True
+)
+
